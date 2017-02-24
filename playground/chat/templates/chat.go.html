@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat</title>
+    <style>
+        input { display : block;}
+        ul { list-style : none;}
+        h1 { font-size: 13pt}
+        #errorMessage { color: #FF3000}
+    </style>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+    <script>
+        $(function() {
+            if (!window['WebSocket']) {
+                alert("WebSocketに対応していません")
+                return false;
+            }
+            var messageBox = $("#messageBox");
+            var messages = $("#messages");
+            var errorMessage = $("#errorMessage");
+
+            console.log(1)
+            var socket = new WebSocket("ws://localhost:8080/room")
+            console.log(2)
+
+            socket.onopen = function(e) {
+                console.log("socket.onopen:", e);
+                console.log("WebSocket opened.");
+            };
+            socket.onclose = function(e) {
+                console.log("socket.onclose:", e);
+                errorMessage.textContent = "WebSocket接続が終了しました。";
+            };
+            socket.onerror = function(e) {
+                console.log("socket.onerror:", e);
+                errorMessage.textContent = "error";
+            };
+            socket.onmessage = function(e) {
+                console.log("socket.onmessage:", e);
+                messages.append($("<li>").text(e.data));
+            };
+
+
+
+
+            $("#chatbox").submit(function () {
+                if (!messageBox.val()) return false;
+                if (!socket) {
+                    errorMessage.textContent = "ソケット接続されていません";
+                    return false;
+                }
+
+                console.log("socket.send:", socket);
+                socket.send(messageBox.val());
+                messageBox.val("");
+                return false;
+            });
+
+        });
+
+    </script>
+</head>
+<body>
+    <h1>WebSocket</h1>
+    <span id="errorMessage"></span>
+    <ul id="messages"></ul>
+
+    <form id="chatbox">
+        <input type="text" id="messageBox">
+        <input type="submit" value="送信">
+    </form>
+</body>
+</html>
