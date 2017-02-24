@@ -32,14 +32,18 @@ func newRoom() *room {
 func (r *room) run() {
 	for {
 		select {
+		// 参加チャンネル
 		case client := <-r.joinChannel:
 			r.clients[client] = true
 			fmt.Println("client join", client)
+		// 退席チャンネル
 		case client := <-r.leaveChannel:
 			delete(r.clients, client)
 			close(client.sendChannel)
 			fmt.Println("client leave", client)
-		case msg := <-r.forwardChannel:
+
+		// メッセージ送信
+		case msg := <-r.forwardChannel: // client.write内で送信されてくる
 			fmt.Println("message", msg)
 			for client := range r.clients {
 				select {
@@ -93,6 +97,7 @@ func (room *room) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// 別スレッドで読み込み処理を起動
 	go client.read()
 
+	// 無限ループでクライアントのスレッドが終了しないように
 	for {
 
 	}

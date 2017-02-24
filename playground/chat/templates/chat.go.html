@@ -23,7 +23,8 @@
             var errorMessage = $("#errorMessage");
 
             console.log(1)
-            var socket = new WebSocket("ws://localhost:8080/room")
+            // {{.Header}}
+            var socket = new WebSocket("ws://{{.Host}}/room")
             console.log(2)
 
             socket.onopen = function(e) {

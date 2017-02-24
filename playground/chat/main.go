@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -20,28 +21,26 @@ func (t *templateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		t.tmpl = template.Must(template.ParseFiles(filepath.Join("templates", t.filename)))
 		fmt.Println("template was compiled")
 	})
-	var err = t.tmpl.Execute(w, nil)
+	var err = t.tmpl.Execute(w, r)
 	if err != nil {
 		log.Fatal("template compile error !")
 	}
 }
 
 func main() {
-	//http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-	//	w.Write([]byte(`
-	//	<h1>hello</h1>
-	//	`))
-	//})
+	var addr = flag.String("addr", ":8080", "アプリケーションのポート")
+	flag.Parse()
+
 	room := newRoom()
 
 	// ルーティング設定
 	http.Handle("/", &templateHandler{filename: "chat.go.html"})
 	http.Handle("/room", room)
 
-	// メッセージ受信送信の並列処理のリスナーを起動
+	// 別スレッドでメッセージ受信送信の並列処理のリスナーを起動
 	go room.run()
 
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(*addr, nil); err != nil {
 		log.Fatal("Server start error")
 		log.Fatal(err.Error())
 	}
